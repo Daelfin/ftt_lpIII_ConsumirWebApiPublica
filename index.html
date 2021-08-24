@@ -64,7 +64,9 @@
                     //Enviando as informações para o gráfico
                     labels.push(tableData2[item]);
                     values.push(tableData1.usd[item]);
-
+                }
+                
+                if (item != "usd") {
                     //Enviando as informações para a tabela do html
                     let trTag = document.createElement("tr");
                     let tdTagSigla = document.createElement("td");
