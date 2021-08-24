@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Valor do Dolar em Outras Moedas</title>
+    </head>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <body>
+        <h1>Valor do Dólar em Outras Moedas</h1>
+        <canvas id="myChart"></canvas>
+        <p>(Foram excluídos do gráfico valores acima de $100,00 e abaixo de $0,01 em favor da legibilidade.)</p>
+        <br />
+        <p>
+            <table>
+                <thead>
+                    <tr><th>Sigla</th><th>Moeda</th><th>Valor</th></tr>
+                </thead>
+                <tbody id="tableData">
+                </tbody>
+            </table>
+        </p>
+    </body>
+
+    <script>
+        
+        //Coletar as informações da primeira API (Contém as siglas das moedas e seus valores)
+        let URL = "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/usd.json";
+
+        fetch(URL)
+            .then(req => req.json())
+            .then(table => { callSecondAPI(table);})
+        ;
+
+        function callSecondAPI(ApiResult){
+            //Coletar as informações da segunda API (Contém o significado das siglas das moedas)
+            let URL = "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies.json";
+            
+            fetch(URL)
+                .then(req => req.json())
+                .then(table => { preencheGrafico(ApiResult, table);})
+            ;       
+        }
+
+        function preencheGrafico(tableData1, tableData2){
+            
+            const labels = [];
+            const values = [];
+            const bgColours = [];
+            
+            const tbodyTag = document.getElementById("tableData");
+            tbodyTag.innerHTML="";
+
+            for(var item in tableData1.usd) {
+                if (tableData1.usd[item] <= 100 && tableData1.usd[item] > 0.1 && item != "usd" ){
+                    
+                    //Gerando uma cor aleatória para as barras do gráfico
+                    var colour = "rgba(" + randomIntFromInterval(0, 255) + ", " + randomIntFromInterval(0, 255) + ", " + randomIntFromInterval(0, 255) + ", 0.5)";
+                    bgColours.push(colour);
+
+                    //Enviando as informações para o gráfico
+                    labels.push(tableData2[item]);
+                    values.push(tableData1.usd[item]);
+
+                    //Enviando as informações para a tabela do html
+                    let trTag = document.createElement("tr");
+                    let tdTagSigla = document.createElement("td");
+                    let tdTagMoeda = document.createElement("td");
+                    let tdTagValor = document.createElement("td");
+
+                    tdTagSigla.innerHTML = item;
+                    trTag.appendChild(tdTagSigla);
+
+                    tdTagMoeda.innerHTML = tableData2[item];
+                    trTag.appendChild(tdTagMoeda);
+
+                    tdTagValor.innerHTML = tableData1.usd[item];
+                    trTag.appendChild(tdTagValor);
+
+                    tbodyTag.appendChild(trTag);
+                }
+            }
+
+            //Gerando o gráfico
+            var ctx = document.getElementById('myChart').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Valor do Dólar',
+                        data: values,
+                        backgroundColor: bgColours,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y'
+                    }
+                }
+            );
+        }
+
+        function randomIntFromInterval(min, max) { // min e max são inclusívos 
+            //Gerando um número aleatório
+            return Math.floor(Math.random() * (max - min + 1) + min)
+        }
+    </script>
+</html>
